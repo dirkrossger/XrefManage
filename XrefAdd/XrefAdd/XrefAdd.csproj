@@ -54,6 +54,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MyStringCompare.cs" />
+    <Compile Include="MyXrefInformation.cs" />
     <Compile Include="Utility.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

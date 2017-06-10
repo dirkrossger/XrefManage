@@ -3,3 +3,10 @@ H:\Dropbox\.net ÅF\Utveckling\xReference\Detach\Detach\bin\Debug\Detach.pdb
 H:\Dropbox\.net ÅF\Utveckling\xReference\Detach\Detach\obj\Debug\Detach.csprojResolveAssemblyReference.cache
 H:\Dropbox\.net ÅF\Utveckling\xReference\Detach\Detach\obj\Debug\Detach.dll
 H:\Dropbox\.net ÅF\Utveckling\xReference\Detach\Detach\obj\Debug\Detach.pdb
+c:\Git-repository\XrefManage\Detach\Detach\bin\Debug\Detach.dll
+c:\Git-repository\XrefManage\Detach\Detach\bin\Debug\Detach.pdb
+c:\Git-repository\XrefManage\Detach\Detach\bin\Debug\accoremgd.dll
+c:\Git-repository\XrefManage\Detach\Detach\bin\Debug\acdbmgd.dll
+c:\Git-repository\XrefManage\Detach\Detach\bin\Debug\acmgd.dll
+c:\Git-repository\XrefManage\Detach\Detach\obj\Debug\Detach.dll
+c:\Git-repository\XrefManage\Detach\Detach\obj\Debug\Detach.pdb

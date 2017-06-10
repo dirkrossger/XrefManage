@@ -7,14 +7,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
 
+#region Autodesk
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
-
 using AcadApp = Autodesk.AutoCAD.ApplicationServices.Application;
-using System.IO;
+using Autodesk.AutoCAD.Geometry;
+#endregion
+
 
 namespace XrefAdd
 {

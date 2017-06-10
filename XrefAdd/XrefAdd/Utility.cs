@@ -4,213 +4,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
+#region Autodesk
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
-
 using AcadApp = Autodesk.AutoCAD.ApplicationServices.Application;
 using Autodesk.AutoCAD.Geometry;
-using System.IO;
+#endregion
+
+
 
 namespace XrefAdd
 {
-    public class MyStringCompare
-    {
-
-        public MyStringCompare() { }
-
-        public static int Compare(object obj1, object obj2)
-        {
-            string str1 = (string)obj1, str2 = (string)obj2;
-            int i1 = 0,
-                i2 = 0,
-                CompareResult,
-                l1 = str1.Length,
-                l2 = str2.Length,
-                tempI1,
-                tempI2;
-            string s1, s2;
-            bool b1, b2;
-
-            while (true)
-            {
-                b1 = Char.IsDigit(str1, i1);
-                b2 = Char.IsDigit(str2, i2);
-                if (!b1 && b2)
-                    return -1;
-                if (b1 && !b2)
-                    return 1;
-                if (b1 && b2)
-                {
-                    FindLastDigit(str1, ref i1, out s1);
-                    FindLastDigit(str2, ref i2, out s2);
-                    tempI1 = Convert.ToInt32(s1);
-                    tempI2 = Convert.ToInt32(s2);
-                    if (tempI1.Equals(tempI2))
-                        CompareResult = 0;
-                    else if (tempI1 < tempI2)
-                        CompareResult = -1;
-                    else
-                        CompareResult = 1;
-                    if (!CompareResult.Equals(0))
-                        return CompareResult;
-                }
-                else
-                {
-                    FindLastLetter(str1, ref i1, out s1);
-                    FindLastLetter(str2, ref i2, out s2);
-                    CompareResult = string.Compare(s1, s2);
-                    if (!CompareResult.Equals(0))
-                        return CompareResult;
-                }
-                if (l1 <= i1)
-                {
-                    if (l2 <= i2)
-                    {
-                        return 0;
-                    }
-                    else
-                    {
-                        return -1;
-                    }
-                }
-                if (l2 <= i2)
-                {
-                    if (l1 < i1)
-                    {
-                        return 0;
-                    }
-                    else
-                    {
-                        return 1;
-                    }
-                }
-            }
-        }
-        private static void FindLastLetter(string MainStr, ref int i, out string OutStr)
-        {
-            int StartPos = i;
-            int StrLen = MainStr.Length;
-            ++i;
-            while (i < StrLen && !Char.IsDigit(MainStr, i))
-                ++i;
-            OutStr = MainStr.Substring(StartPos, i - StartPos);
-        }
-        private static void FindLastDigit(string MainStr, ref int i, out string OutStr)
-        {
-            int StartPos = i;
-            int StrLen = MainStr.Length;
-            ++i;
-            while (i < StrLen && Char.IsDigit(MainStr, i))
-                ++i;
-            OutStr = MainStr.Substring(StartPos, i - StartPos);
-        }
-    }
-
-    internal class MyStringCompare1 : IComparer
-    {
-        public MyStringCompare1() { }
-        public int Compare(object x, object y)
-        {
-            return MyStringCompare.Compare(x, y);
-        }
-    }
-
-    public class MyXrefInformation
-    {
-        private string XrName;
-        private string XrPath;
-        private string XrFndAtPath = string.Empty;
-        private string NewXrName = "";
-        private string NewXrPath = "";
-        private string[] InsertedAt;
-        private string[] _OwnerNames = new string[0];
-        private string[] _ChildrenNames = new string[0];
-        private Autodesk.AutoCAD.DatabaseServices.XrefStatus XrStatus;
-        private string DwgPath;
-        private bool Overlay;
-        private bool Nested;
-        private ObjectId xId;
-
-        public MyXrefInformation() { }
-
-        public string Name
-        {
-            get { return XrName; }
-            set { XrName = value; }
-        }
-        public string Path
-        {
-            get { return XrPath; }
-            set { XrPath = value; }
-        }
-        public string FoundAtPath
-        {
-            get { return XrFndAtPath; }
-            set { XrFndAtPath = value; }
-        }
-        public string[] InsertedWhere
-        {
-            get { return InsertedAt; }
-            set { InsertedAt = value; }
-        }
-        public Autodesk.AutoCAD.DatabaseServices.XrefStatus Status
-        {
-            get { return XrStatus; }
-            set { XrStatus = value; }
-        }
-        public string DrawingPath
-        {
-            get { return DwgPath; }
-            set { DwgPath = value; }
-        }
-        public bool IsOverlay
-        {
-            get { return Overlay; }
-            set { Overlay = value; }
-        }
-        public bool IsNested
-        {
-            get { return Nested; }
-            set { Nested = value; }
-        }
-        public string NewName
-        {
-            get { return NewXrName; }
-            set { NewXrName = value; }
-        }
-        public string NewPath
-        {
-            get { return NewXrPath; }
-            set { NewXrPath = value; }
-        }
-        public string[] OwnerNames
-        {
-            get { return _OwnerNames; }
-            set { _OwnerNames = value; }
-        }
-        public string[] ChildrenNames
-        {
-            get { return _ChildrenNames; }
-            set { _ChildrenNames = value; }
-        }
-
-        public ObjectId XId
-        {
-            get
-            {
-                return xId;
-            }
-
-            set
-            {
-                xId = value;
-            }
-        }
-    }
-
     public class Utility
     {
         public static ObjectIdCollection GetBlockReferenceIds(Database db, string[] BlkNames)
@@ -234,6 +42,7 @@ namespace XrefAdd
             }
             return MyObjIdCol;
         }
+
         public string GetAttributeValue(Database db, string blkName, string tagName)
         {
             using (Transaction Trans = db.TransactionManager.StartTransaction())
@@ -255,6 +64,7 @@ namespace XrefAdd
                 return "";
             }
         }
+
         public bool SetAttributeValue(Database db, string blkName, string tagName, string newValue)
         {
             using (Transaction Trans = db.TransactionManager.StartTransaction())
@@ -285,6 +95,7 @@ namespace XrefAdd
                 return false;
             }
         }
+
         public static bool IsBlockReferenceInserted(Database db, ObjectId objId)
         {
             using (Transaction Trans = db.TransactionManager.StartTransaction())
@@ -294,6 +105,7 @@ namespace XrefAdd
                 return BlkTblRec.IsLayout;
             }
         }
+
         public static bool IsInLayout(Database db, ObjectId objId, string loName)
         {
             using (Transaction Trans = db.TransactionManager.StartTransaction())
@@ -312,6 +124,7 @@ namespace XrefAdd
                     return false;
             }
         }
+
         public static MyXrefInformation[] FindXrefs(Database db)
         {
             MyXrefInformation[] XrefArray;
@@ -399,6 +212,7 @@ namespace XrefAdd
             }
             return XrefArray;
         }
+
         public static string WillLoad(string FilePath, Database db)
         {
             string FoundAt = "";
@@ -430,6 +244,7 @@ namespace XrefAdd
             }
             return string.Empty;
         }
+
         public static ObjectId InsertBlock(Database db, string loName, string blkName, Point3d insPt)
         {
             ObjectId RtnObjId = ObjectId.Null;
@@ -482,8 +297,8 @@ namespace XrefAdd
             }
             return RtnObjId;
         }
+
         public static ObjectId GetNonErasedTableRecordId(ObjectId TableId, string Name)
-        // Posted by Tony Tanzillo 01Sept2006
         {
             ObjectId id = ObjectId.Null;
             using (Transaction tr = TableId.Database.TransactionManager.StartTransaction())
@@ -507,6 +322,7 @@ namespace XrefAdd
             }
             return id;
         }
+
         public static int FindGraphLocation(GraphNode grNode)
         {
             Graph Gr = grNode.Owner;
@@ -517,6 +333,7 @@ namespace XrefAdd
             }
             return -1;
         }
+
         public static Document GetDocumentFrom(DocumentCollection docCol, string name)
         {
             Document Doc = null;
