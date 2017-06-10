@@ -4,3 +4,13 @@ H:\Dropbox\.net ÅF\Utveckling\xReference\XrefAdd\XrefAdd\obj\Debug\XrefAdd.Form
 H:\Dropbox\.net ÅF\Utveckling\xReference\XrefAdd\XrefAdd\obj\Debug\XrefAdd.csproj.GenerateResource.Cache
 H:\Dropbox\.net ÅF\Utveckling\xReference\XrefAdd\XrefAdd\obj\Debug\XrefAdd.dll
 H:\Dropbox\.net ÅF\Utveckling\xReference\XrefAdd\XrefAdd\obj\Debug\XrefAdd.pdb
+c:\Git-repository\XrefManage\XrefAdd\XrefAdd\bin\Debug\XrefAdd.dll
+c:\Git-repository\XrefManage\XrefAdd\XrefAdd\bin\Debug\XrefAdd.pdb
+c:\Git-repository\XrefManage\XrefAdd\XrefAdd\bin\Debug\accoremgd.dll
+c:\Git-repository\XrefManage\XrefAdd\XrefAdd\bin\Debug\acdbmgd.dll
+c:\Git-repository\XrefManage\XrefAdd\XrefAdd\bin\Debug\acmgd.dll
+c:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.Form1.resources
+c:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.csproj.GenerateResource.Cache
+c:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.dll
+c:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.pdb
+c:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.csprojResolveAssemblyReference.cache
