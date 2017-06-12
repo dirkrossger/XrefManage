@@ -14,3 +14,13 @@ c:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.csproj.GenerateRe
 c:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.dll
 c:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.pdb
 c:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.csprojResolveAssemblyReference.cache
+H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\bin\Debug\XrefAdd.dll
+H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\bin\Debug\XrefAdd.pdb
+H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\bin\Debug\accoremgd.dll
+H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\bin\Debug\acdbmgd.dll
+H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\bin\Debug\acmgd.dll
+H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\obj\Debug\XrefAdd.csprojResolveAssemblyReference.cache
+H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\obj\Debug\XrefAdd.Form1.resources
+H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\obj\Debug\XrefAdd.csproj.GenerateResource.Cache
+H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\obj\Debug\XrefAdd.dll
+H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\obj\Debug\XrefAdd.pdb

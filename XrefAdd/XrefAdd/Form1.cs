@@ -114,14 +114,8 @@ namespace XrefAdd
             return Doc;
         }
 
-        void DrawingSelected(object sender, MouseEventArgs e)
+        void ListXrefs()
         {
-            if (e.Button == MouseButtons.Right) return;
-            if (ViewTogBtn.Text == "Show Per Drawing")
-            {
-                DwgListview.SelectedItems.Clear();
-                return;
-            }
             XrefListview.Items.Clear();
             List<ListViewItem> LocList;
             foreach (ListViewItem lvi in DwgListview.SelectedItems)
@@ -158,6 +152,68 @@ namespace XrefAdd
                 }
             }
             XrefListview.Sort();
+        }
+
+        public void Detach(string filename)
+        {
+            Document Doc = AcadApp.DocumentManager.MdiActiveDocument;
+            Editor ed = Doc.Editor;
+
+            Database db = new Database(false, false);
+            using (db)
+            {
+                try
+                {
+                    db.ReadDwgFile(filename, System.IO.FileShare.ReadWrite, false, "");
+
+                }
+                catch (System.Exception)
+                {
+                    ed.WriteMessage("\nUnable to read the drawingfile.");
+                    return;
+                }
+
+                bool saveRequired = false;
+                db.ResolveXrefs(true, false);
+                using (Transaction tr = db.TransactionManager.StartTransaction())
+                {
+                    XrefGraph xg = db.GetHostDwgXrefGraph(true);
+
+                    int xrefcount = xg.NumNodes;
+                    for (int j = 0; j < xrefcount; j++)
+                    {
+                        XrefGraphNode xrNode = xg.GetXrefNode(j);
+                        String nodeName = xrNode.Name;
+
+                        if (xrNode.XrefStatus == XrefStatus.FileNotFound)
+                        {
+                            ObjectId detachid = xrNode.BlockTableRecordId;
+
+                            db.DetachXref(detachid);
+
+                            saveRequired = true;
+                            ed.WriteMessage("\nDetached successfully");
+
+                            break;
+                        }
+                    }
+                    tr.Commit();
+                }
+
+                if (saveRequired)
+                    db.SaveAs(filename, DwgVersion.Current);
+            }
+        }
+
+        void DrawingSelected(object sender, MouseEventArgs e)
+        {
+            //if (e.Button == MouseButtons.Right) return;
+            //if (ViewTogBtn.Text == "Show Per Drawing")
+            //{
+            //    DwgListview.SelectedItems.Clear();
+            //    return;
+            //}
+            ListXrefs();
         }
 
 
@@ -201,25 +257,27 @@ namespace XrefAdd
                                         if (!DocInEditor)
                                             Db.ReadDwgFile(DwgName, System.IO.FileShare.ReadWrite, true, null);
 
-                                        BlockTable BlkTbl = Trans.GetObject(Db.BlockTableId, OpenMode.ForRead) as BlockTable;
-                                        XrefGraph XrGraph = Db.GetHostDwgXrefGraph(false);
-                                        XrefGraphNode XrNode = XrGraph.GetXrefNode(0);
+                                        //BlockTable BlkTbl = Trans.GetObject(Db.BlockTableId, OpenMode.ForRead) as BlockTable;
+                                        XrefGraph XrGraph = Db.GetHostDwgXrefGraph(true);
+
+                                        XrefGraphNode XrNode = XrGraph.GetXrefNode(xr.Text);
 
                                         for (int i = 1; i < XrGraph.NumNodes; i++)
                                         {
-                                            XrefGraphNode tempNode = XrGraph.GetXrefNode(i);
+                                            //XrefGraphNode tempNode = XrGraph.GetXrefNode(i);
 
-                                            XrNode = tempNode;
+                                            //XrNode = tempNode;
                                             ObjectId detachid = XrNode.BlockTableRecordId;
                                             Db.DetachXref(detachid);
                                             Db.SaveAs(DwgName, DwgVersion.Current);
+
+                                            xr.Remove();
+
                                             break;
                                         }
                                     }
                                 }
                             }
-
-
                             catch (Autodesk.AutoCAD.Runtime.Exception AcadEx)
                             {
                                 MessageBox.Show(AcadEx.Message + "\n\n" + AcadEx.StackTrace + "\n\n" + DwgName, "AutoCAD error.");
@@ -239,6 +297,7 @@ namespace XrefAdd
 
                 }
             }
+            
         }
 
         #endregion Buttons
