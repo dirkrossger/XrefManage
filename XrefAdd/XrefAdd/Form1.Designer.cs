@@ -176,6 +176,7 @@
             this.button1_Attach.TabIndex = 14;
             this.button1_Attach.Text = "Attach";
             this.button1_Attach.UseVisualStyleBackColor = true;
+            this.button1_Attach.Click += new System.EventHandler(this.button1_Attach_Click);
             // 
             // Form1
             // 

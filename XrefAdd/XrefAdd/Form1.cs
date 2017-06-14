@@ -25,6 +25,8 @@ namespace XrefAdd
     {
         private static List<MyXrefInformation> XrInfoList;
         private static DocumentCollection DocCol;
+        private List<string> RoList;
+        private string[] Files;
 
         public Form1()
         {
@@ -34,7 +36,7 @@ namespace XrefAdd
         public MyXrefInformation[] XrInfo;
         void Form1_Load(object sender, EventArgs e)
         {
-            List<string> RoList = new List<string>();
+            
             Autodesk.AutoCAD.Windows.OpenFileDialog Dia =
                 new Autodesk.AutoCAD.Windows.OpenFileDialog
                 (
@@ -46,9 +48,16 @@ namespace XrefAdd
                );
 
             if (Dia.ShowDialog() != DialogResult.OK) return;
-            string[] Files = Dia.GetFilenames();
+            Files = Dia.GetFilenames();
             MyStringCompare1 msc1 = new MyStringCompare1();
             Array.Sort(Files, msc1);
+            ListFiles(Files);
+        }
+
+        void ListFiles(string[] Files)
+        {
+            RoList = new List<string>();
+
             foreach (string DwgPath in Files)
             {
                 if ((File.GetAttributes(DwgPath) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
@@ -101,6 +110,7 @@ namespace XrefAdd
             }
             if (!string.IsNullOrEmpty(Sb.ToString()))
                 MessageBox.Show(Sb.ToString(), "Read-only files not able to update.");
+
         }
 
         private Document GetDocumentFrom(DocumentCollection docCol, string dwgPath)
@@ -222,6 +232,7 @@ namespace XrefAdd
         {
             DocCol = AcadApp.DocumentManager;
             XrInfoList = new List<MyXrefInformation>();
+            int index = DwgListview.SelectedIndices[0];
 
             //List<ListViewItem> LocList;
             foreach (ListViewItem lvi in DwgListview.SelectedItems)
@@ -297,7 +308,104 @@ namespace XrefAdd
 
                 }
             }
-            
+
+            foreach (ListViewItem lvi in DwgListview.Items)
+            {
+                DwgListview.Items.Remove(lvi);
+            }
+            ListFiles(Files);
+            DwgListview.Items[index].Selected = true;
+        }
+
+        private void button1_Attach_Click(object sender, EventArgs e)
+        {
+            Autodesk.AutoCAD.Windows.OpenFileDialog DiaAttach =
+                new Autodesk.AutoCAD.Windows.OpenFileDialog
+                (
+                     "Select drawings to attach.",
+                     "",
+                     "dwg",
+                     "",
+                     Autodesk.AutoCAD.Windows.OpenFileDialog.OpenFileDialogFlags.AllowMultiple
+               );
+
+            if (DiaAttach.ShowDialog() != DialogResult.OK) return;
+            Files = DiaAttach.GetFilenames();
+
+
+            foreach (ListViewItem lvi in DwgListview.SelectedItems)
+            {
+                using (DocumentLock DocLock = DocCol.MdiActiveDocument.LockDocument())
+                {
+                    foreach (MyXrefInformation xrInfoAr in lvi.Tag as MyXrefInformation[])
+                    {
+
+                        string DwgName = xrInfoAr.DrawingPath;
+                        Database Db;
+                        Document OpenDoc = null;
+                        DocumentLock tempLock = null;
+                        //bool ShouldSave = false;
+                        OpenDoc = GetDocumentFrom(DocCol, DwgName);
+                        bool DocInEditor = (OpenDoc != null);
+                        if (DocInEditor)
+                        {
+                            Db = OpenDoc.Database;
+                            tempLock = OpenDoc.LockDocument();
+                        }
+                        else
+                            Db = new Database(true, false);
+
+                        using (Transaction Trans = Db.TransactionManager.StartTransaction())
+                        {
+                            try
+                            {
+                                if (!DocInEditor)
+                                    Db.ReadDwgFile(DwgName, System.IO.FileShare.ReadWrite, true, null);
+
+                                foreach (string fname in Files)
+                                {
+                                    // Create a reference to a DWG file
+                                    ObjectId acXrefId = Db.AttachXref(fname, Path.GetFileName(fname));
+
+                                    //// If a valid reference is created then continue
+                                    if (!acXrefId.IsNull)
+                                    {
+                                        // Attach the DWG reference to the current space
+                                        Point3d insPt = new Point3d(1, 1, 0);
+                                        using (BlockReference acBlkRef = new BlockReference(insPt, acXrefId))
+                                        {
+                                            BlockTableRecord acBlkTblRec;
+                                            acBlkTblRec = Trans.GetObject(Db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
+
+                                            acBlkTblRec.AppendEntity(acBlkRef);
+                                            Trans.AddNewlyCreatedDBObject(acBlkRef, true);
+                                        }
+                                    }
+                                    Db.SaveAs(DwgName, DwgVersion.Current);
+
+
+                                }
+                            }
+                            catch (Autodesk.AutoCAD.Runtime.Exception AcadEx)
+                            {
+                                MessageBox.Show(AcadEx.Message + "\n\n" + AcadEx.StackTrace + "\n\n" + DwgName, "AutoCAD error.");
+                            }
+                            catch (System.Exception SysEx)
+                            {
+                                MessageBox.Show(SysEx.Message, "System error.");
+                            }
+                            Trans.Commit();
+                        }
+
+                        if (DocInEditor)
+                            tempLock.Dispose();
+                        else
+                            Db.Dispose();
+                    }
+
+                }
+            }
+
         }
 
         #endregion Buttons
@@ -319,5 +427,6 @@ namespace XrefAdd
                 }
             }
         }
+
     }
 }

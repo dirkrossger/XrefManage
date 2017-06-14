@@ -24,3 +24,10 @@ H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\obj\Debug\XrefAdd.Form1
 H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\obj\Debug\XrefAdd.csproj.GenerateResource.Cache
 H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\obj\Debug\XrefAdd.dll
 H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\obj\Debug\XrefAdd.pdb
+H:\Git-repository\XrefManage\XrefAdd\XrefAdd\bin\Debug\XrefAdd.dll
+H:\Git-repository\XrefManage\XrefAdd\XrefAdd\bin\Debug\XrefAdd.pdb
+H:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.Form1.resources
+H:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.csproj.GenerateResource.Cache
+H:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.dll
+H:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.pdb
+H:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.csprojResolveAssemblyReference.cache
