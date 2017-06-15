@@ -164,56 +164,6 @@ namespace XrefAdd
             XrefListview.Sort();
         }
 
-        public void Detach(string filename)
-        {
-            Document Doc = AcadApp.DocumentManager.MdiActiveDocument;
-            Editor ed = Doc.Editor;
-
-            Database db = new Database(false, false);
-            using (db)
-            {
-                try
-                {
-                    db.ReadDwgFile(filename, System.IO.FileShare.ReadWrite, false, "");
-
-                }
-                catch (System.Exception)
-                {
-                    ed.WriteMessage("\nUnable to read the drawingfile.");
-                    return;
-                }
-
-                bool saveRequired = false;
-                db.ResolveXrefs(true, false);
-                using (Transaction tr = db.TransactionManager.StartTransaction())
-                {
-                    XrefGraph xg = db.GetHostDwgXrefGraph(true);
-
-                    int xrefcount = xg.NumNodes;
-                    for (int j = 0; j < xrefcount; j++)
-                    {
-                        XrefGraphNode xrNode = xg.GetXrefNode(j);
-                        String nodeName = xrNode.Name;
-
-                        if (xrNode.XrefStatus == XrefStatus.FileNotFound)
-                        {
-                            ObjectId detachid = xrNode.BlockTableRecordId;
-
-                            db.DetachXref(detachid);
-
-                            saveRequired = true;
-                            ed.WriteMessage("\nDetached successfully");
-
-                            break;
-                        }
-                    }
-                    tr.Commit();
-                }
-
-                if (saveRequired)
-                    db.SaveAs(filename, DwgVersion.Current);
-            }
-        }
 
         void DrawingSelected(object sender, MouseEventArgs e)
         {
@@ -372,14 +322,14 @@ namespace XrefAdd
                                     {
                                         // Attach the DWG reference to the current space
                                         Point3d insPt = new Point3d(1, 1, 0);
-                                        using (BlockReference acBlkRef = new BlockReference(insPt, acXrefId))
-                                        {
-                                            BlockTableRecord acBlkTblRec;
-                                            acBlkTblRec = Trans.GetObject(Db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
+                                        //using (BlockReference acBlkRef = new BlockReference(insPt, acXrefId))
+                                        //{
+                                        //    BlockTableRecord acBlkTblRec;
+                                        //    acBlkTblRec = Trans.GetObject(Db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
 
-                                            acBlkTblRec.AppendEntity(acBlkRef);
-                                            Trans.AddNewlyCreatedDBObject(acBlkRef, true);
-                                        }
+                                        //    acBlkTblRec.AppendEntity(acBlkRef);
+                                        //    Trans.AddNewlyCreatedDBObject(acBlkRef, true);
+                                        //}
                                     }
                                     Db.SaveAs(DwgName, DwgVersion.Current);
 
