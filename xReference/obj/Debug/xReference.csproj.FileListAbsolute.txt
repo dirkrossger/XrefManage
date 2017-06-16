@@ -1,4 +1,0 @@
-H:\Dropbox\.net ÅF\Utveckling\xReference\xReference\bin\Debug\xReference.dll
-H:\Dropbox\.net ÅF\Utveckling\xReference\xReference\bin\Debug\xReference.pdb
-H:\Dropbox\.net ÅF\Utveckling\xReference\xReference\obj\Debug\xReference.dll
-H:\Dropbox\.net ÅF\Utveckling\xReference\xReference\obj\Debug\xReference.pdb

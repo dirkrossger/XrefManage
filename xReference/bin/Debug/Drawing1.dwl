@@ -1,3 +1,0 @@
-A480836
-AF-8BKGYZ1 
-den 13 december 2016  08:35:57
