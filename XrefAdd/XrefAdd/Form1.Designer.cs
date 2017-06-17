@@ -59,6 +59,7 @@
             this.DwgListview.Location = new System.Drawing.Point(12, 34);
             this.DwgListview.Name = "DwgListview";
             this.DwgListview.Size = new System.Drawing.Size(154, 400);
+            this.DwgListview.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.DwgListview.TabIndex = 0;
             this.DwgListview.UseCompatibleStateImageBehavior = false;
             this.DwgListview.View = System.Windows.Forms.View.Details;
@@ -185,7 +186,7 @@
             this.ClientSize = new System.Drawing.Size(1092, 453);
             this.Controls.Add(this.SplitPnl);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "XrefBuild";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.SplitPnl.Panel1.ResumeLayout(false);
             this.SplitPnl.Panel2.ResumeLayout(false);

@@ -26,7 +26,8 @@ namespace XrefAdd
         private static List<MyXrefInformation> XrInfoList;
         private static DocumentCollection DocCol;
         private List<string> RoList;
-        private string[] Files;
+        private string[] Files, AttFiles;
+        private string DwgPathName;
 
         public Form1()
         {
@@ -173,6 +174,23 @@ namespace XrefAdd
             //    DwgListview.SelectedItems.Clear();
             //    return;
             //}
+            try
+            {
+                if (DwgListview.SelectedItems[0].Selected)
+                {
+                    string select = DwgListview.SelectedItems[0].Text;
+                    foreach (string file in Files)
+                    {
+                        if (select == Path.GetFileNameWithoutExtension(file))
+                            DwgPathName = file;
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show("Select Drawing!");
+            }
+
             ListXrefs();
         }
 
@@ -280,88 +298,77 @@ namespace XrefAdd
                );
 
             if (DiaAttach.ShowDialog() != DialogResult.OK) return;
-            Files = DiaAttach.GetFilenames();
+            AttFiles = DiaAttach.GetFilenames();
+
+            int index = DwgListview.SelectedIndices[0];
+            // Get the current database and start a transaction
+            Database db;
+            db = AcadApp.DocumentManager.MdiActiveDocument.Database;
 
 
-            foreach (ListViewItem lvi in DwgListview.SelectedItems)
+            using (DocumentLock DocLock = DocCol.MdiActiveDocument.LockDocument())
             {
-                using (DocumentLock DocLock = DocCol.MdiActiveDocument.LockDocument())
+                Database Db;
+                Document OpenDoc = null;
+                DocumentLock tempLock = null;
+                string DwgName = DwgPathName;
+                OpenDoc = GetDocumentFrom(DocCol, DwgName);
+                bool DocInEditor = (OpenDoc != null);
+                if (DocInEditor)
                 {
-                    foreach (MyXrefInformation xrInfoAr in lvi.Tag as MyXrefInformation[])
+                    Db = OpenDoc.Database;
+                    tempLock = OpenDoc.LockDocument();
+                }
+                else
+                    Db = new Database(true, false);
+
+                bool saveRequired = false;
+                using (Transaction acTrans = Db.TransactionManager.StartTransaction())
+                {
+
+                    foreach (string file in AttFiles)
                     {
+                        ObjectId acXrefId = Db.AttachXref(file, Path.GetFileName(file));
 
-                        string DwgName = xrInfoAr.DrawingPath;
-                        Database Db;
-                        Document OpenDoc = null;
-                        DocumentLock tempLock = null;
-                        //bool ShouldSave = false;
-                        OpenDoc = GetDocumentFrom(DocCol, DwgName);
-                        bool DocInEditor = (OpenDoc != null);
-                        if (DocInEditor)
+                        // If a valid reference is created then continue
+                        if (!acXrefId.IsNull)
                         {
-                            Db = OpenDoc.Database;
-                            tempLock = OpenDoc.LockDocument();
+                            // Attach the DWG reference to the current space
+                            Point3d insPt = new Point3d(0, 0, 0);
+                            using (BlockReference acBlkRef = new BlockReference(insPt, acXrefId))
+                            {
+                                BlockTableRecord acBlkTblRec;
+                                acBlkTblRec = acTrans.GetObject(Db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
+
+                                acBlkTblRec.AppendEntity(acBlkRef);
+                                acTrans.AddNewlyCreatedDBObject(acBlkRef, true);
+
+                                saveRequired = true;
+                            }
                         }
-                        else
-                            Db = new Database(true, false);
-
-                        using (Transaction Trans = Db.TransactionManager.StartTransaction())
-                        {
-                            try
-                            {
-                                if (!DocInEditor)
-                                    Db.ReadDwgFile(DwgName, System.IO.FileShare.ReadWrite, true, null);
-
-                                foreach (string fname in Files)
-                                {
-                                    // Create a reference to a DWG file
-                                    ObjectId acXrefId = Db.AttachXref(fname, Path.GetFileName(fname));
-
-                                    //// If a valid reference is created then continue
-                                    if (!acXrefId.IsNull)
-                                    {
-                                        // Attach the DWG reference to the current space
-                                        Point3d insPt = new Point3d(1, 1, 0);
-                                        //using (BlockReference acBlkRef = new BlockReference(insPt, acXrefId))
-                                        //{
-                                        //    BlockTableRecord acBlkTblRec;
-                                        //    acBlkTblRec = Trans.GetObject(Db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
-
-                                        //    acBlkTblRec.AppendEntity(acBlkRef);
-                                        //    Trans.AddNewlyCreatedDBObject(acBlkRef, true);
-                                        //}
-                                    }
-                                    Db.SaveAs(DwgName, DwgVersion.Current);
-
-
-                                }
-                            }
-                            catch (Autodesk.AutoCAD.Runtime.Exception AcadEx)
-                            {
-                                MessageBox.Show(AcadEx.Message + "\n\n" + AcadEx.StackTrace + "\n\n" + DwgName, "AutoCAD error.");
-                            }
-                            catch (System.Exception SysEx)
-                            {
-                                MessageBox.Show(SysEx.Message, "System error.");
-                            }
-                            Trans.Commit();
-                        }
-
-                        if (DocInEditor)
-                            tempLock.Dispose();
-                        else
-                            Db.Dispose();
                     }
+                    if (saveRequired)
+                        Db.SaveAs(DwgPathName, DwgVersion.Current);
 
+
+                    // Save the new objects to the database
+                    acTrans.Commit();
+
+                    // Dispose of the transaction
                 }
             }
-
+            foreach (ListViewItem lvi in DwgListview.Items)
+            {
+                DwgListview.Items.Remove(lvi);
+            }
+            ListFiles(Files);
+            DwgListview.Items[index].Selected = true;
         }
 
         #endregion Buttons
 
 
-        [CommandMethod("AddXref", CommandFlags.Session)]
+        [CommandMethod("XrBuild", CommandFlags.Session)]
         public void Main()
         {
             DocCol = AcadApp.DocumentManager;
@@ -375,6 +382,21 @@ namespace XrefAdd
                 {
                     AcadApp.ShowModalDialog(XrMan);
                 }
+            }
+        }
+
+        public class XrefAdd : IExtensionApplication
+        {
+            private static Editor editor =
+                AcadApp.DocumentManager.MdiActiveDocument.Editor;
+
+            public void Initialize()
+            {
+                editor.WriteMessage("\nXrefBuild Start with XrBuild!");
+            }
+
+            public void Terminate()
+            {
             }
         }
 

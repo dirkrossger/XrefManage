@@ -358,22 +358,6 @@ namespace XrefAdd
             }
         }
     }
-
-    public class XrefAdd : IExtensionApplication
-    {
-        private static Editor editor =
-            Application.DocumentManager.MdiActiveDocument.Editor;
-
-        public void Initialize()
-        {
-            editor.WriteMessage("\nXrefManage Start with addxref");
-        }
-
-        public void Terminate()
-        {
-        }
-    }
-
 }
 
 
