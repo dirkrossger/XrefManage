@@ -55,11 +55,14 @@
             this.DwgListview.HideSelection = false;
             this.DwgListview.LabelWrap = false;
             this.DwgListview.Location = new System.Drawing.Point(12, 32);
+            this.DwgListview.MultiSelect = false;
             this.DwgListview.Name = "DwgListview";
             this.DwgListview.Size = new System.Drawing.Size(238, 147);
+            this.DwgListview.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.DwgListview.TabIndex = 3;
             this.DwgListview.UseCompatibleStateImageBehavior = false;
             this.DwgListview.View = System.Windows.Forms.View.Details;
+            this.DwgListview.MouseUp += new System.Windows.Forms.MouseEventHandler(this.DrawingSelected);
             // 
             // columnHeader1
             // 

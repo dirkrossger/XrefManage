@@ -27,9 +27,10 @@ namespace Attach
             InitializeComponent();
         }
 
-        private string[] Files;
+        private string[] Files, AttFiles;
         private List<string> RoList;
         private static DocumentCollection DocCol;
+        private string DwgPathName;
 
         private void button1_Add_Click(object sender, EventArgs e)
         {
@@ -37,7 +38,7 @@ namespace Attach
                 new Autodesk.AutoCAD.Windows.OpenFileDialog
                 ("Select drawings to Add.", "", "dwg", "", Autodesk.AutoCAD.Windows.OpenFileDialog.OpenFileDialogFlags.AllowMultiple);
             if (Dia.ShowDialog() != DialogResult.OK) return;
-            Files = Dia.GetFilenames();
+            AttFiles = Dia.GetFilenames();
 
             Attach();
         }
@@ -60,61 +61,60 @@ namespace Attach
             Database db;
             db = AcadApp.DocumentManager.MdiActiveDocument.Database;
 
-            foreach (ListViewItem lvi in DwgListview.SelectedItems)
+
+            using (DocumentLock DocLock = DocCol.MdiActiveDocument.LockDocument())
             {
-                using (DocumentLock DocLock = DocCol.MdiActiveDocument.LockDocument())
+                Database Db;
+                Document OpenDoc = null;
+                DocumentLock tempLock = null;
+                string DwgName = DwgPathName;
+                OpenDoc = GetDocumentFrom(DocCol, DwgName);
+                bool DocInEditor = (OpenDoc != null);
+                if (DocInEditor)
                 {
-                    Database Db;
-                    Document OpenDoc = null;
-                    DocumentLock tempLock = null;
-                    string DwgName = lvi.Text;// Path.GetFileName(lvi.Text);
-                    OpenDoc = GetDocumentFrom(DocCol, DwgName);
-                    bool DocInEditor = (OpenDoc != null);
-                    if (DocInEditor)
-                    {
-                        Db = OpenDoc.Database;
-                        tempLock = OpenDoc.LockDocument();
-                    }
-                    else
-                        Db = new Database(true, false);
+                    Db = OpenDoc.Database;
+                    tempLock = OpenDoc.LockDocument();
+                }
+                else
+                    Db = new Database(true, false);
 
-                    bool saveRequired = false;
-                    using (Transaction acTrans = Db.TransactionManager.StartTransaction())
-                    {
+                bool saveRequired = false;
+                using (Transaction acTrans = Db.TransactionManager.StartTransaction())
+                {
 
-                        foreach (string file in Files)
+                    foreach (string file in AttFiles)
+                    {
+                        ObjectId acXrefId = Db.AttachXref(file, Path.GetFileName(file));
+
+                        // If a valid reference is created then continue
+                        if (!acXrefId.IsNull)
                         {
-                            ObjectId acXrefId = Db.AttachXref(file, Path.GetFileName(file));
-
-                            // If a valid reference is created then continue
-                            if (!acXrefId.IsNull)
+                            // Attach the DWG reference to the current space
+                            Point3d insPt = new Point3d(0, 0, 0);
+                            using (BlockReference acBlkRef = new BlockReference(insPt, acXrefId))
                             {
-                                // Attach the DWG reference to the current space
-                                Point3d insPt = new Point3d(0, 0, 0);
-                                using (BlockReference acBlkRef = new BlockReference(insPt, acXrefId))
-                                {
-                                    BlockTableRecord acBlkTblRec;
-                                    acBlkTblRec = acTrans.GetObject(Db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
+                                BlockTableRecord acBlkTblRec;
+                                acBlkTblRec = acTrans.GetObject(Db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
 
-                                    acBlkTblRec.AppendEntity(acBlkRef);
-                                    acTrans.AddNewlyCreatedDBObject(acBlkRef, true);
+                                acBlkTblRec.AppendEntity(acBlkRef);
+                                acTrans.AddNewlyCreatedDBObject(acBlkRef, true);
 
-                                    saveRequired = true;
-                                }
+                                saveRequired = true;
                             }
                         }
-                        if (saveRequired)
-                            Db.SaveAs(@"C:\Users\A480836\Google Drive\XrefManage\1.dwg", DwgVersion.Current);
-
-
-                        // Save the new objects to the database
-                        acTrans.Commit();
-
-                        // Dispose of the transaction
                     }
+                    if (saveRequired)
+                        Db.SaveAs(DwgPathName, DwgVersion.Current);
+
+
+                    // Save the new objects to the database
+                    acTrans.Commit();
+
+                    // Dispose of the transaction
                 }
             }
         }
+      
 
         void ListFiles()
         {
@@ -171,6 +171,27 @@ namespace Attach
             }
             if (!string.IsNullOrEmpty(Sb.ToString()))
                 MessageBox.Show(Sb.ToString(), "Read-only files not able to update.");
+        }
+
+        void DrawingSelected(object sender, MouseEventArgs e)
+        {
+            try
+            {
+                if (DwgListview.SelectedItems[0].Selected)
+                {
+                    string select = DwgListview.SelectedItems[0].Text;
+                    foreach (string file in Files)
+                    {
+                        if (select == Path.GetFileNameWithoutExtension(file))
+                            DwgPathName = file;
+                    }
+                }
+            }
+            catch(System.Exception ex)
+            {
+                MessageBox.Show("Select Drawing!");
+            }
+            
         }
 
         private void Form1_Load(object sender, EventArgs e)
