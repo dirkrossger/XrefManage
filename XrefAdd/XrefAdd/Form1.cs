@@ -148,7 +148,8 @@ namespace XrefAdd
                     lvi.Tag = XrInfo;
                 if (!XrInfo.Equals(0))
                 {
-                    DwgListview.Items[0].Remove();
+                    int item = DwgListview.Items.IndexOf(DwgListview.SelectedItems[0]);
+                    DwgListview.Items[item].Remove();
                     DwgListview.Items.Add(lvi);
                 }
                    
