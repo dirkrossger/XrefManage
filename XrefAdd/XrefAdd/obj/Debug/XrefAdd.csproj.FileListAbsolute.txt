@@ -30,3 +30,4 @@ H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\bin\Debug\XrBuild.pdb
 H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\obj\Debug\XrBuild.dll
 H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\obj\Debug\XrBuild.pdb
 H:\GIT-repository\XrefManage\Development\XrefAdd\XrefAdd\obj\Debug\XrefAdd.csprojResolveAssemblyReference.cache
+C:\Git-repository\XrefManage\XrefAdd\XrefAdd\obj\Debug\XrefAdd.csprojResolveAssemblyReference.cache

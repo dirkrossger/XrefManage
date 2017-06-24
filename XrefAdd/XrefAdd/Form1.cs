@@ -294,9 +294,6 @@ namespace XrefAdd
                         {
                             try
                             {
-                                //for(int idx = 0; idx < XrefListview.SelectedItems.Count; idx++)
-                                //{
-                                //ListViewItem xr = XrefListview.SelectedItems[idx];
                                 foreach (ListViewItem xr in XrefListview.SelectedItems)
                                 {
                                     if (xrInfoAr.Name == xr.Text) // !!! error compare filename from XrefListview_Listbox wrong !!!
@@ -342,16 +339,8 @@ namespace XrefAdd
                         else
                             Db.Dispose();
                     }
-
                 }
             }
-
-            //foreach (ListViewItem lvi in DwgListview.Items)
-            //{
-            //    DwgListview.Items.Remove(lvi);
-            //}
-            //ListFiles(Files);
-            //DwgListview.Items[index].Selected = true;
         }
 
         private void button1_Attach_Click(object sender, EventArgs e)
@@ -370,69 +359,76 @@ namespace XrefAdd
             AttFiles = DiaAttach.GetFilenames();
 
             int index = DwgListview.SelectedIndices[0];
-            // Get the current database and start a transaction
-            Database db;
-            db = AcadApp.DocumentManager.MdiActiveDocument.Database;
-
-
-            using (DocumentLock DocLock = DocCol.MdiActiveDocument.LockDocument())
+            foreach (ListViewItem lvi in DwgListview.SelectedItems)
             {
-                Database Db;
-                Document OpenDoc = null;
-                DocumentLock tempLock = null;
-                string DwgName = DwgPathName;
-                OpenDoc = GetDocumentFrom(DocCol, DwgName);
-                bool DocInEditor = (OpenDoc != null);
-                if (DocInEditor)
-                {
-                    Db = OpenDoc.Database;
-                    tempLock = OpenDoc.LockDocument();
-                }
-                else
-                    Db = new Database(true, false);
-
-                bool saveRequired = false;
-                using (Transaction acTrans = Db.TransactionManager.StartTransaction())
+                using (DocumentLock DocLock = DocCol.MdiActiveDocument.LockDocument())
                 {
 
-                    foreach (string file in AttFiles)
+                    string DwgName = DwgPathName;
+
+
+                    Database Db;
+                    Document OpenDoc = null;
+                    DocumentLock tempLock = null;
+                    OpenDoc = GetDocumentFrom(DocCol, DwgName);
+                    bool DocInEditor = (OpenDoc != null);
+                    if (DocInEditor)
                     {
-                        ObjectId acXrefId = Db.AttachXref(file, Path.GetFileName(file));
+                        Db = OpenDoc.Database;
+                        tempLock = OpenDoc.LockDocument();
+                    }
+                    else
+                        Db = new Database(true, false);
 
-                        // If a valid reference is created then continue
-                        if (!acXrefId.IsNull)
+                    using (Transaction acTrans = Db.TransactionManager.StartTransaction())
+                    {
+                        try
                         {
-                            // Attach the DWG reference to the current space
-                            Point3d insPt = new Point3d(0, 0, 0);
-                            using (BlockReference acBlkRef = new BlockReference(insPt, acXrefId))
+                            if (!DocInEditor)
+                                Db.ReadDwgFile(DwgName, System.IO.FileShare.ReadWrite, true, null);
+
+                            foreach (string file in AttFiles)
                             {
-                                BlockTableRecord acBlkTblRec;
-                                acBlkTblRec = acTrans.GetObject(Db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
+                                ObjectId acXrefId = Db.AttachXref(file, Path.GetFileName(file));
 
-                                acBlkTblRec.AppendEntity(acBlkRef);
-                                acTrans.AddNewlyCreatedDBObject(acBlkRef, true);
+                                // If a valid reference is created then continue
+                                if (!acXrefId.IsNull)
+                                {
+                                    // Attach the DWG reference to the current space
+                                    Point3d insPt = new Point3d(0, 0, 0);
+                                    using (BlockReference acBlkRef = new BlockReference(insPt, acXrefId))
+                                    {
+                                        BlockTableRecord acBlkTblRec;
+                                        acBlkTblRec = acTrans.GetObject(Db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
 
-                                saveRequired = true;
+                                        acBlkTblRec.AppendEntity(acBlkRef);
+                                        acTrans.AddNewlyCreatedDBObject(acBlkRef, true);
+                                        Db.SaveAs(DwgName, DwgVersion.Current);
+                                        ListFile(DwgName);
+
+                                    }
+                                }
                             }
                         }
+
+                        catch (Autodesk.AutoCAD.Runtime.Exception AcadEx)
+                        {
+                            MessageBox.Show(AcadEx.Message + "\n\n" + AcadEx.StackTrace + "\n\n" + DwgName, "AutoCAD error.");
+                        }
+                        catch (System.Exception SysEx)
+                        {
+                            MessageBox.Show(SysEx.Message, "System error.");
+                        }
+                        acTrans.Commit();
                     }
-                    if (saveRequired)
-                        Db.SaveAs(DwgPathName, DwgVersion.Current);
-                    
 
-
-                    // Save the new objects to the database
-                    acTrans.Commit();
-
-                    // Dispose of the transaction
+                    if (DocInEditor)
+                        tempLock.Dispose();
+                    else
+                        Db.Dispose();
                 }
             }
-            foreach (ListViewItem lvi in DwgListview.Items)
-            {
-                DwgListview.Items.Remove(lvi);
-            }
-            ListFiles(Files);
-            DwgListview.Items[index].Selected = true;
+            ListXrefs();
         }
 
         #endregion Buttons
