@@ -57,6 +57,7 @@ namespace XrefAdd
             ListFiles(Files);
         }
 
+        #region Methods
         void ListFiles(string[] Files)
         {
             RoList = new List<string>();
@@ -121,51 +122,53 @@ namespace XrefAdd
             RoList = new List<string>();
 
             if ((File.GetAttributes(DwgPath) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
-                {
-                    RoList.Add(DwgPath);
-                }
-                string[] tempStrArray = DwgPath.Split('\\');
-                tempStrArray = tempStrArray[tempStrArray.Length - 1].Split('.');
-                ListViewItem lvi = new ListViewItem(tempStrArray[0]);
-                Database Db;
-                DocumentLock tempLock = null;
-                Document OpenDoc = null;
-                OpenDoc = GetDocumentFrom(DocCol, DwgPath);
-                bool DocInEditor = (OpenDoc != null);
-                if (DocInEditor)
-                {
-                    Db = OpenDoc.Database;
-                    tempLock = OpenDoc.LockDocument();
-                    Db.ResolveXrefs(false, true);
-                }
-                else
-                    Db = new Database(true, false);
-                try
-                {
-                    if (!DocInEditor)
-                        Db.ReadDwgFile(DwgPath, System.IO.FileShare.ReadWrite, true, null);
-                    XrInfo = MyXrefInformation.FindXrefs(Db);
-                    lvi.Tag = XrInfo;
+            {
+                RoList.Add(DwgPath);
+            }
+            string[] tempStrArray = DwgPath.Split('\\');
+            tempStrArray = tempStrArray[tempStrArray.Length - 1].Split('.');
+            ListViewItem lvi = new ListViewItem(tempStrArray[0]);
+            Database Db;
+            DocumentLock tempLock = null;
+            Document OpenDoc = null;
+            OpenDoc = GetDocumentFrom(DocCol, DwgPath);
+            bool DocInEditor = (OpenDoc != null);
+            if (DocInEditor)
+            {
+                Db = OpenDoc.Database;
+                tempLock = OpenDoc.LockDocument();
+                Db.ResolveXrefs(false, true);
+            }
+            else
+                Db = new Database(true, false);
+            try
+            {
+                if (!DocInEditor)
+                    Db.ReadDwgFile(DwgPath, System.IO.FileShare.ReadWrite, true, null);
+                XrInfo = MyXrefInformation.FindXrefs(Db);
+                lvi.Tag = XrInfo;
+                string selectedItem = DwgListview.SelectedItems[0].Text;
                 if (!XrInfo.Equals(0))
                 {
                     int item = DwgListview.Items.IndexOf(DwgListview.SelectedItems[0]);
                     DwgListview.Items[item].Remove();
                     DwgListview.Items.Add(lvi);
+                    DwgListview.Items[item].Selected = true;
                 }
-                   
-                }
-                catch (Autodesk.AutoCAD.Runtime.Exception AcadEx)
-                {
-                    MessageBox.Show(AcadEx.Message + "\n\n" + DwgPath + "\n\n" + AcadEx.StackTrace, "AutoCAD error.");
-                }
-                catch (System.Exception SysEx)
-                {
-                    MessageBox.Show(SysEx.Message + System.Environment.NewLine + System.Environment.NewLine + SysEx.StackTrace, "System error.");
-                }
-                if (DocInEditor)
-                    tempLock.Dispose();
-                else
-                    Db.Dispose();
+
+            }
+            catch (Autodesk.AutoCAD.Runtime.Exception AcadEx)
+            {
+                MessageBox.Show(AcadEx.Message + "\n\n" + DwgPath + "\n\n" + AcadEx.StackTrace, "AutoCAD error.");
+            }
+            catch (System.Exception SysEx)
+            {
+                MessageBox.Show(SysEx.Message + System.Environment.NewLine + System.Environment.NewLine + SysEx.StackTrace, "System error.");
+            }
+            if (DocInEditor)
+                tempLock.Dispose();
+            else
+                Db.Dispose();
 
             StringBuilder Sb = new StringBuilder();
             foreach (string str in RoList)
@@ -173,10 +176,9 @@ namespace XrefAdd
                 Sb.AppendLine(str);
             }
             if (!string.IsNullOrEmpty(Sb.ToString()))
-                MessageBox.Show(Sb.ToString(), "Read-only files not able to update."); 
+                MessageBox.Show(Sb.ToString(), "Read-only files not able to update.");
 
         }
-
 
         private Document GetDocumentFrom(DocumentCollection docCol, string dwgPath)
         {
@@ -229,7 +231,6 @@ namespace XrefAdd
             XrefListview.Sort();
         }
 
-
         void DrawingSelected(object sender, MouseEventArgs e)
         {
             //if (e.Button == MouseButtons.Right) return;
@@ -257,7 +258,7 @@ namespace XrefAdd
 
             ListXrefs();
         }
-
+        #endregion
 
         #region Buttons
         private void button2_Detach_Click(object sender, EventArgs e)
@@ -468,6 +469,5 @@ namespace XrefAdd
             {
             }
         }
-
     }
 }
