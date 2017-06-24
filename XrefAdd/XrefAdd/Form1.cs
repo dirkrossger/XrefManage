@@ -358,14 +358,11 @@ namespace XrefAdd
             if (DiaAttach.ShowDialog() != DialogResult.OK) return;
             AttFiles = DiaAttach.GetFilenames();
 
-            int index = DwgListview.SelectedIndices[0];
-            foreach (ListViewItem lvi in DwgListview.SelectedItems)
-            {
+            //foreach (ListViewItem lvi in DwgListview.SelectedItems)
+            //{
                 using (DocumentLock DocLock = DocCol.MdiActiveDocument.LockDocument())
                 {
-
                     string DwgName = DwgPathName;
-
 
                     Database Db;
                     Document OpenDoc = null;
@@ -382,43 +379,47 @@ namespace XrefAdd
 
                     using (Transaction acTrans = Db.TransactionManager.StartTransaction())
                     {
-                        try
+                    try
+                    {
+                        if (!DocInEditor)
+                            Db.ReadDwgFile(DwgName, System.IO.FileShare.ReadWrite, true, null);
+                        bool saverequired = false;
+
+                        foreach (string file in AttFiles)
                         {
-                            if (!DocInEditor)
-                                Db.ReadDwgFile(DwgName, System.IO.FileShare.ReadWrite, true, null);
+                            ObjectId acXrefId = Db.AttachXref(file, Path.GetFileName(file));
 
-                            foreach (string file in AttFiles)
+                            // If a valid reference is created then continue
+                            if (!acXrefId.IsNull)
                             {
-                                ObjectId acXrefId = Db.AttachXref(file, Path.GetFileName(file));
-
-                                // If a valid reference is created then continue
-                                if (!acXrefId.IsNull)
+                                // Attach the DWG reference to the current space
+                                Point3d insPt = new Point3d(0, 0, 0);
+                                using (BlockReference acBlkRef = new BlockReference(insPt, acXrefId))
                                 {
-                                    // Attach the DWG reference to the current space
-                                    Point3d insPt = new Point3d(0, 0, 0);
-                                    using (BlockReference acBlkRef = new BlockReference(insPt, acXrefId))
-                                    {
-                                        BlockTableRecord acBlkTblRec;
-                                        acBlkTblRec = acTrans.GetObject(Db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
+                                    BlockTableRecord acBlkTblRec;
+                                    acBlkTblRec = acTrans.GetObject(Db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
 
-                                        acBlkTblRec.AppendEntity(acBlkRef);
-                                        acTrans.AddNewlyCreatedDBObject(acBlkRef, true);
-                                        Db.SaveAs(DwgName, DwgVersion.Current);
-                                        ListFile(DwgName);
-
-                                    }
+                                    acBlkTblRec.AppendEntity(acBlkRef);
+                                    acTrans.AddNewlyCreatedDBObject(acBlkRef, true);
+                                    saverequired = true;
                                 }
                             }
                         }
+                        if (saverequired)
+                        {
+                            Db.SaveAs(DwgName, DwgVersion.Current);
+                            ListFile(DwgName);
+                        }
+                    }
 
-                        catch (Autodesk.AutoCAD.Runtime.Exception AcadEx)
-                        {
-                            MessageBox.Show(AcadEx.Message + "\n\n" + AcadEx.StackTrace + "\n\n" + DwgName, "AutoCAD error.");
-                        }
-                        catch (System.Exception SysEx)
-                        {
-                            MessageBox.Show(SysEx.Message, "System error.");
-                        }
+                    catch (Autodesk.AutoCAD.Runtime.Exception AcadEx)
+                    {
+                        MessageBox.Show(AcadEx.Message + "\n\n" + AcadEx.StackTrace + "\n\n" + DwgName, "AutoCAD error.");
+                    }
+                    catch (System.Exception SysEx)
+                    {
+                        MessageBox.Show(SysEx.Message, "System error.");
+                    }
                         acTrans.Commit();
                     }
 
@@ -427,7 +428,7 @@ namespace XrefAdd
                     else
                         Db.Dispose();
                 }
-            }
+            //}
             ListXrefs();
         }
 
